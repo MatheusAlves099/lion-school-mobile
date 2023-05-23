@@ -1,3 +1,18 @@
 <resources>
     <string name="app_name">Lion School</string>
+    <string name="text_home">Welcome to our school</string>
+    <string name="text_home_description">Here you can find courses, list of students and information about your grades.</string>
+    <string name="text_button_lets_go">"Let's go"</string>
+    <string name="title_activity_courses">CoursesActivity</string>
+    <string name="text_outlined_courses">Find your course</string>
+    <string name="text_all_courses">All Courses</string>
+    <string name="text_ds">DS</string>
+    <string name="text_ds_title">Desenvolvimento de Sistemas</string>
+    <string name="text_ds_description">Learn about web programming, android, database and other subjects.</string>
+    <string name="text_ds_semesters">3 semesters</string>
+    <string name="title_activity_students_list">StudentsListActivity</string>
+    <string name="text_all_students">All Students</string>
+    <string name="text_studying">Studying</string>
+    <string name="text_finished">Finished</string>
+
 </resources>
