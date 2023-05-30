@@ -14,5 +14,9 @@
     <string name="text_all_students">All Students</string>
     <string name="text_studying">Studying</string>
     <string name="text_finished">Finished</string>
+    <string name="name_student1">HÉLIDA BENTO DE OLIVEIRA LINS</string>
+    <string name="name_student2">JOSÉ MATHEUS DA SILVA MIRANDA</string>
+    <string name="title_activity_student_info">StudentInfo</string>
+    <string name="text_hi_student">Hi, José!</string>
 
 </resources>
