@@ -1,11 +1,13 @@
 package br.senai.sp.jandira.lionschool
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,6 +22,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.LinearGradient
 import androidx.compose.ui.graphics.painter.BrushPainter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,23 +49,50 @@ class StudentsListActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             LionSchoolTheme {
-                StudentsListScreen()
+                val siglaCurso = intent.getStringExtra("sigla")
+                val nomeCurso = intent.getStringExtra("nome")
+                StudentsListScreen(siglaCurso.toString(), nomeCurso.toString())
             }
         }
     }
 }
 
-@Preview(showSystemUi = true, showBackground = true)
+
 @Composable
-fun StudentsListScreen() {
+fun StudentsListScreen(curso: String, nomeCurso: String) {
+
+    val context = LocalContext.current
 
     var listStudent by remember {
         mutableStateOf(listOf<Student>())
     }
 
+    var nameCourse by remember {
+        mutableStateOf("")
+    }
+
+    val call = RetrofitFactory().getStudentService().getStudentByCourse(curso)
+
+    //Executa a chamada
+    call.enqueue(object : Callback<StudentList> {
+        override fun onResponse(
+            call: Call<StudentList>,
+            response: Response<StudentList>
+        ) {
+            listStudent = response.body()!!.curso
+        }
+
+        override fun onFailure(call: Call<StudentList>, t: Throwable) {
+
+        }
+    })
+
     Surface(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(colors = listOf(Color(0,0,0), Color(0,200,0)))
+            )
     ) {
         Column(
             modifier = Modifier
@@ -91,7 +121,7 @@ fun StudentsListScreen() {
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                Text(text = stringResource(id = R.string.text_ds_title),
+                Text(text = nomeCurso,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     textAlign = TextAlign.Center,
@@ -170,31 +200,27 @@ fun StudentsListScreen() {
 
             LazyColumn(
             ) {
-
-                val call = RetrofitFactory().getStudentService().getStudent()
-
-                //Executa a chamada
-                call.enqueue(object : Callback<StudentList> {
-                    override fun onResponse(
-                        call: Call<StudentList>,
-                        response: Response<StudentList>
-                    ) {
-                        listStudent = response.body()!!.alunos
-                    }
-
-                    override fun onFailure(call: Call<StudentList>, t: Throwable) {
-
-                    }
-                })
-
                 items(listStudent) {
+                    var backgroundCardColor = Color(0,0,0)
+                    if (it.status == "Finalizado") {
+                        backgroundCardColor = Color(254, 193, 62, 255)
+                    } else {
+                        backgroundCardColor = Color(51, 71, 176, 255)
+                    }
+
+
                     Card(
                         modifier = Modifier
                             .size(width = 300.dp, height = 150.dp)
-                            .padding(8.dp),
-                        backgroundColor = Color(254, 193, 62, 255),
+                            .padding(8.dp)
+                            .clickable {
+                                var openPerformanceStudents = Intent(context, StudentsListActivity::class.java)
+
+                                context.startActivity(openPerformanceStudents)
+                            },
+                        backgroundColor = backgroundCardColor,
                         shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(2.dp, color = Color(51, 71, 176, 255))
+                        border = BorderStroke(2.dp, color = Color(104, 104, 104, 255))
                     ) {
                         Column(
                             modifier = Modifier
@@ -211,17 +237,17 @@ fun StudentsListScreen() {
                             )
 
                             Text(
-                                text = it.nome,
+                                text = it.nome.uppercase(),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp,
                                 textAlign = TextAlign.Center,
-                                color = Color(51, 71, 176, 255)
+                                color = Color(250, 250, 250, 255)
                             )
 
                             Row(
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.clock_icon_blue), contentDescription = "",
+                                    painter = painterResource(id = R.drawable.clock_icon), contentDescription = "",
                                     modifier = Modifier
                                         .size(15.dp)
                                 )
@@ -233,7 +259,7 @@ fun StudentsListScreen() {
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 12.sp,
                                     textAlign = TextAlign.Center,
-                                    color = Color(51, 71, 176, 255)
+                                    color = Color(255, 255, 255, 255)
                                 )
                             }
                         }
