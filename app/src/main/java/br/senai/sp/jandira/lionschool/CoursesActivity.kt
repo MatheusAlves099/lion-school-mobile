@@ -42,6 +42,7 @@ import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
+
 class CoursesActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,10 +65,6 @@ fun CoursesScreen() {
     }
 
     var searchState by remember {
-        mutableStateOf(value = "")
-    }
-
-    var clickState by remember {
         mutableStateOf(value = "")
     }
 
@@ -147,7 +144,6 @@ fun CoursesScreen() {
 
             LazyColumn(
             ) {
-
                 val call = RetrofitFactory().getCourseService().getCourses()
 
                 //Executa a chamada

@@ -67,7 +67,12 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
         mutableStateOf(listOf<Student>())
     }
 
-    var nameCourse by remember {
+    var listStudentStatus by remember {
+        mutableStateOf(listOf<Student>())
+    }
+
+    var list: List<Student>
+    var name by remember {
         mutableStateOf("")
     }
 
@@ -80,6 +85,7 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
             response: Response<StudentList>
         ) {
             listStudent = response.body()!!.curso
+            listStudentStatus = response.body()!!.curso
         }
 
         override fun onFailure(call: Call<StudentList>, t: Throwable) {
@@ -109,16 +115,6 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
                     .size(height = 2.dp, width = 300.dp),
                 color = Color(3, 52, 123, 255)
             )
-
-            Row(
-
-            ) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ds_icon),
-                    contentDescription = "",
-                    tint = Color(51, 71, 176, 255)
-                )
-
                 Spacer(modifier = Modifier.width(8.dp))
 
                 Text(text = nomeCurso,
@@ -127,7 +123,6 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
                     textAlign = TextAlign.Center,
                     color = Color(51, 71, 176, 255)
                 )
-            }
 
             Divider(
                 modifier = Modifier
@@ -144,11 +139,12 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
             ) {
                 Button(
                     onClick = {
+                              listStudentStatus = listStudent
                     },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
                         .size(width = 90.dp, height = 40.dp),
-                    colors = ButtonDefaults.buttonColors(Color(51, 71, 176, 255))
+                    colors = ButtonDefaults.buttonColors(Color(148, 148, 148, 255))
                 ) {
                     Text(
                         text = stringResource(id = R.string.text_all_students),
@@ -163,6 +159,7 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
 
                 Button(
                     onClick = {
+                              listStudentStatus = listStudent.filter { it.status == "Cursando" }
                     },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
@@ -181,6 +178,7 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
 
                 Button(
                     onClick = {
+                        listStudentStatus = listStudent.filter { it.status == "Finalizado" }
                     },
                     shape = RoundedCornerShape(10.dp),
                     modifier = Modifier
@@ -200,7 +198,7 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
 
             LazyColumn(
             ) {
-                items(listStudent) {
+                items(listStudentStatus) {
                     var backgroundCardColor = Color(0,0,0)
                     if (it.status == "Finalizado") {
                         backgroundCardColor = Color(254, 193, 62, 255)
@@ -214,8 +212,9 @@ fun StudentsListScreen(curso: String, nomeCurso: String) {
                             .size(width = 300.dp, height = 150.dp)
                             .padding(8.dp)
                             .clickable {
-                                var openPerformanceStudents = Intent(context, StudentsListActivity::class.java)
-
+                                var openPerformanceStudents = Intent(context, StudentInfo::class.java)
+                                openPerformanceStudents.putExtra("matricula", it.matricula)
+                                openPerformanceStudents.putExtra("nome", it.nome)
                                 context.startActivity(openPerformanceStudents)
                             },
                         backgroundColor = backgroundCardColor,
