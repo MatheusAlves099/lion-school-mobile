@@ -16,17 +16,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.toUpperCase
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import br.senai.sp.jandira.lionschool.model.Student
-import br.senai.sp.jandira.lionschool.model.StudentInfoList
-import br.senai.sp.jandira.lionschool.model.StudentList
+import br.senai.sp.jandira.lionschool.model.StudentNotes
 import br.senai.sp.jandira.lionschool.service.RetrofitFactory
 import br.senai.sp.jandira.lionschool.theme.LionSchoolTheme
 import coil.compose.AsyncImage
@@ -39,9 +33,13 @@ class StudentInfo : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             LionSchoolTheme {
-                val matriculaAluno = intent.getStringExtra("matricula")
-                val nomeAluno = intent.getStringExtra("nome")
-                StudentInfoScreen(matriculaAluno.toString(), nomeAluno.toString())
+                Surface(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    val matriculaAluno = intent.getStringExtra("matricula")
+                    val nomeAluno = intent.getStringExtra("nome")
+                    StudentInfoScreen(matriculaAluno.toString(), nomeAluno.toString())
+                }
             }
         }
     }
@@ -50,30 +48,40 @@ class StudentInfo : ComponentActivity() {
 @Composable
 fun StudentInfoScreen(matricula: String, nome: String) {
 
-    var infoStudent by remember {
-        mutableStateOf(listOf<br.senai.sp.jandira.lionschool.model.StudentInfo>())
+    var studentNotes by remember {
+        mutableStateOf(StudentNotes("","","","", emptyList()))
     }
 
-    val call = RetrofitFactory().getStudentMatricula().getStudentByMatricula(matricula)
+    val call = RetrofitFactory().getStudentNotes().getStudentByMatriculaNotes(matricula)
 
-    //Executa a chamada
-    call.enqueue(object : Callback<StudentInfoList> {
+    call.enqueue(object : Callback<StudentNotes> {
         override fun onResponse(
-            call: Call<StudentInfoList>,
-            response: Response<StudentInfoList>
+            call: Call<StudentNotes>,
+            response: Response<StudentNotes>
         ) {
-            infoStudent = response.body()!!.alunos
-        }
+            if(response.isSuccessful){
+                val studentResponse = response.body()
+                if(studentResponse != null){
+                    studentNotes = studentResponse
+                }
+            }
 
-        override fun onFailure(call: Call<StudentInfoList>, t: Throwable) {
+        }
+        override fun onFailure(call: Call<StudentNotes>, t: Throwable) {
 
         }
     })
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    fun getColorNotes (nota: Double): Color {
+        return if (nota > 69) {
+            Color(50, 70, 170)
+        } else if (nota> 49 && nota < 70) {
+            Color(220, 180, 80)
+        } else {
+            Color(190, 10, 10)
+        }
+    }
+    
         Column(
             modifier = Modifier
                 .fillMaxWidth(),
@@ -117,64 +125,63 @@ fun StudentInfoScreen(matricula: String, nome: String) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            LazyColumn(){
-                items(infoStudent) {
-                    var backgroundCardColor = Color(0,0,0)
-                    if (it.status == "Finalizado") {
-                        backgroundCardColor = Color(254, 193, 62, 255)
-                    } else {
-                        backgroundCardColor = Color(51, 71, 176, 255)
-                    }
-                    Card(
+            Column() {
+                var backgroundCardColor = Color(0,0,0)
+                if (studentNotes.status == "Finalizado") {
+                    backgroundCardColor = Color(254, 193, 62, 255)
+                } else {
+                    backgroundCardColor = Color(51, 71, 176, 255)
+                }
+                Card(
+                    modifier = Modifier
+                        .size(width = 300.dp, height = 150.dp),
+                    backgroundColor = backgroundCardColor,
+                    shape = RoundedCornerShape(10.dp),
+                    border = BorderStroke(
+                        2.dp,
+                        Brush.verticalGradient(
+                            listOf(
+                                Color(51, 71, 176, 255),
+                                Color(254, 193, 62, 255)
+                            )
+                        ))
+                ) {
+                    Column(
                         modifier = Modifier
-                            .size(width = 300.dp, height = 150.dp),
-                        backgroundColor = backgroundCardColor,
-                        shape = RoundedCornerShape(10.dp),
-                        border = BorderStroke(
-                            2.dp,
-                            Brush.verticalGradient(
-                                listOf(
-                                    Color(51, 71, 176, 255),
-                                    Color(254, 193, 62, 255)
-                                )
-                            ))
+                            .fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
 
-                            AsyncImage(
-                                model = it.foto,
-                                contentDescription = "Student photo",
+                        AsyncImage(
+                            model = studentNotes.foto,
+                            contentDescription = "Student photo",
+                            modifier = Modifier
+                                .size(80.dp)
+                        )
+
+                        Text(text = studentNotes.nome.uppercase(),
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            textAlign = TextAlign.Center,
+                            color = Color(255, 255, 255, 255)
+                        )
+
+                        Row(
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.clock_icon), contentDescription = "",
                                 modifier = Modifier
-                                    .size(80.dp)
+                                    .size(15.dp)
                             )
 
-                            Text(text = it.nome.uppercase(),
+                            Spacer(modifier = Modifier.width(2.dp))
+
+                            Text(text = studentNotes.status,
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
+                                fontSize = 12.sp,
                                 textAlign = TextAlign.Center,
                                 color = Color(255, 255, 255, 255)
-                            )
-
-                            Row(
-                            ) {
-                                Image(
-                                    painter = painterResource(id = R.drawable.clock_icon), contentDescription = "",
-                                    modifier = Modifier
-                                        .size(15.dp)
-                                )
-
-                                Spacer(modifier = Modifier.width(2.dp))
-
-                                Text(text = it.status,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 12.sp,
-                                    textAlign = TextAlign.Center,
-                                    color = Color(255, 255, 255, 255)
                                 )
                             }
                         }
@@ -199,14 +206,51 @@ fun StudentInfoScreen(matricula: String, nome: String) {
                     )
                 )
             ) {
-                Column(
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
+                    items(studentNotes.disciplinas) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Text(
+                                text = it.sigla,
+                                color = getColorNotes(it.media.toDouble()),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.width(25.dp))
+                            Surface(
+
+                            ) {
+                                Card(
+                                    modifier = Modifier
+                                        .height(10.dp)
+                                        .width(100.dp),
+                                    backgroundColor = Color.DarkGray
+                                ) {
+                                }
+                                Card(
+                                    modifier = Modifier
+                                        .height(10.dp)
+                                        .width(it.media.toDouble().dp),
+                                backgroundColor = getColorNotes(it.media.toDouble())
+                                ) {
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(20.dp))
+                            Text(
+                                text = it.media,
+                                color = getColorNotes(it.media.toDouble()),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
                 }
             }
         }
-    }
-}
